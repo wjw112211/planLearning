@@ -30,4 +30,9 @@ roslaunch turtlebot3_gazebo gazebo_grid_map.launch model:=burger
 
 # 使用 SLAM 模式
 roslaunch turtlebot3_gazebo gazebo_grid_map.launch use_static_map:=false run_slam:=true
+
+# 速度指令
+rostopic pub -r 10 /cmd_vel geometry_msgs/Twist "{linear: {x: 0.15, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
 ```
+
+

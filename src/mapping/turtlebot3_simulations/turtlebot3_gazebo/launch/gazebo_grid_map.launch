@@ -35,6 +35,26 @@
         name="base_link_to_base_scan"
         args="-0.032 0 0.172 0 0 0 base_link base_scan"/>
 
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="base_link_to_wheel_left"
+        args="0 0.08 0.023 0 0 -1.57 base_link wheel_left_link"/>
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="base_link_to_wheel_right"
+        args="0 -0.08 0.023 0 0 -1.57 base_link wheel_right_link"/>
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="base_link_to_caster_back"
+        args="-0.081 0 -0.004 0 0 -1.57 base_link caster_back_link"/>
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="base_link_to_imu"
+        args="-0.032 0 0.068 0 0 0 base_link imu_link"/>
+
   <node pkg="gazebo_ros"
         type="spawn_model"
         name="spawn_turtlebot3"

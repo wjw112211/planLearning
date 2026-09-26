@@ -1,0 +1,25 @@
+<launch>
+  <arg name="map_type" default="turtlebot3_world"/>
+  <arg name="resolution" default="0.05"/>
+  <arg name="width" default="200"/>
+  <arg name="height" default="200"/>
+  <arg name="origin_x" default="-5.0"/>
+  <arg name="origin_y" default="-5.0"/>
+
+  <node pkg="grid_map_gazebo_bridge"
+        type="static_turtlebot3_world_map"
+        name="static_turtlebot3_world_map"
+        output="screen">
+    <param name="map_type" value="$(arg map_type)"/>
+    <param name="resolution" value="$(arg resolution)"/>
+    <param name="width" value="$(arg width)"/>
+    <param name="height" value="$(arg height)"/>
+    <param name="origin_x" value="$(arg origin_x)"/>
+    <param name="origin_y" value="$(arg origin_y)"/>
+  </node>
+
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="map_to_odom"
+        args="0 0 0 0 0 0 map odom"/>
+</launch>

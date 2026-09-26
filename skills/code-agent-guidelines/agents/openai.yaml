@@ -1,0 +1,4 @@
+interface:
+  display_name: "代码证据型智能体"
+  short_description: "先读代码再改，拒绝猜测，支持直接修改或生成教学文档"
+  default_prompt: "使用 $code-agent-guidelines 按照先看代码、禁止编译、中文注释和可读性优先的规则处理这个编程问题。"

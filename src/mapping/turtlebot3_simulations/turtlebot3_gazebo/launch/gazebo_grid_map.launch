@@ -1,0 +1,77 @@
+<launch>
+  <arg name="model" default="burger" doc="TurtleBot3 model: burger, waffle, waffle_pi"/>
+  <arg name="robot_name" default="turtlebot3_grid_map"/>
+  <arg name="world_name"
+       default="$(find turtlebot3_gazebo)/worlds/turtlebot3_world.world"/>
+  <arg name="x_pos" default="-2.0"/>
+  <arg name="y_pos" default="-0.5"/>
+  <arg name="z_pos" default="0.0"/>
+  <arg name="use_static_map" default="true"/>
+  <arg name="static_map_type" default="turtlebot3_world"/>
+  <arg name="run_slam" default="false"/>
+  <arg name="run_autonomous_drive" default="false"/>
+  <arg name="launch_rviz" default="true"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro
+                  $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro"/>
+
+  <node pkg="gazebo_ros"
+        type="spawn_model"
+        name="spawn_turtlebot3"
+        output="screen"
+        args="-urdf -model $(arg robot_name)
+              -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos)
+              -param robot_description"/>
+
+  <!-- Build a 2D map from Gazebo's simulated laser and odometry. -->
+  <node pkg="gmapping"
+        type="slam_gmapping"
+        name="slam_gmapping"
+        output="screen"
+        if="$(arg run_slam)">
+    <param name="base_frame" value="base_footprint"/>
+    <param name="odom_frame" value="odom"/>
+    <param name="map_frame" value="map"/>
+    <param name="map_update_interval" value="1.0"/>
+    <param name="maxUrange" value="4.0"/>
+    <param name="minimumScore" value="50"/>
+    <param name="linearUpdate" value="0.15"/>
+    <param name="angularUpdate" value="0.15"/>
+    <param name="temporalUpdate" value="0.5"/>
+    <param name="delta" value="0.05"/>
+    <param name="particles" value="80"/>
+    <param name="xmin" value="-20.0"/>
+    <param name="ymin" value="-20.0"/>
+    <param name="xmax" value="20.0"/>
+    <param name="ymax" value="20.0"/>
+  </node>
+
+  <include file="$(find grid_map_gazebo_bridge)/launch/static_map.launch"
+           if="$(arg use_static_map)">
+    <arg name="map_type" value="$(arg static_map_type)"/>
+  </include>
+
+  <include file="$(find grid_map_gazebo_bridge)/launch/grid_map_gazebo_bridge.launch"/>
+  <include file="$(find grid_map_gazebo_bridge)/launch/grid_map_visualization.launch"/>
+
+  <!-- Retain the existing simple autonomous driver, but make it optional. -->
+  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_simulation.launch"
+           if="$(arg run_autonomous_drive)"/>
+
+  <node pkg="rviz"
+        type="rviz"
+        name="rviz"
+        args="-d $(find turtlebot3_gazebo)/rviz/gazebo_grid_map.rviz"
+        output="screen"
+        if="$(arg launch_rviz)"/>
+</launch>

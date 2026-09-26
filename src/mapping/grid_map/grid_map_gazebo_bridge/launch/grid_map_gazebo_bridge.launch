@@ -1,0 +1,14 @@
+<launch>
+  <arg name="input_topic" default="/map"/>
+  <arg name="output_topic" default="/grid_map"/>
+
+  <node pkg="grid_map_gazebo_bridge"
+        type="occupancy_grid_to_grid_map"
+        name="occupancy_grid_to_grid_map"
+        output="screen">
+    <param name="input_topic" value="$(arg input_topic)"/>
+    <param name="output_topic" value="$(arg output_topic)"/>
+    <param name="occupancy_layer" value="occupancy"/>
+    <param name="flat_layer" value="flat"/>
+  </node>
+</launch>

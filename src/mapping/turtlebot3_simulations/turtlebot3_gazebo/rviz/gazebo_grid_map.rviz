@@ -53,7 +53,7 @@ Visualization Manager:
       Value: true
     - Alpha: 1
       Class: rviz/LaserScan
-      Color: 255; 0; 0
+      Color: 0; 255; 0
       Color Transformer: FlatColor
       Enabled: true
       Name: Laser Scan

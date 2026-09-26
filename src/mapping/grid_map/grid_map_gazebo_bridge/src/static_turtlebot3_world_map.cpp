@@ -64,7 +64,6 @@ private:
     drawCircle(1.8, -2.7, 0.38);
     drawCircle(-1.8, 2.7, 0.38);
     drawCircle(-1.8, -2.7, 0.38);
-    drawRectangle(0.0, 0.0, 0.45, 4.2, -1.5708);
   }
 
   void buildTurtlebot3Square()

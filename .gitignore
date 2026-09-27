@@ -5,3 +5,5 @@ log_test
 .codex
 .agent
 .vscode
+./src/mapping/grid_map/grid_map_manual_mapping/maps
+src/mapping/grid_map/grid_map_manual_mapping/maps

@@ -1,0 +1,79 @@
+<launch>
+  <!--
+    一键启动"手动建图"整套：
+
+      Gazebo（迷宫世界）+ 机器人
+        + manual_mapping_node（默认定位模式：加载 maps 里最新的 pgm；按建图模式则边走边建）
+        + keyboard_teleop（键盘 wsad -> /cmd_vel）
+        + RViz（左边"手动建图"面板：定位模式 / 建图模式 / 保存地图 三个按钮）
+        + occupancy_grid_to_cost_map（/map -> /grid_map + /costmap）
+
+    用法：
+      roslaunch bringup gazebo_manual_mapping.launch
+      roslaunch bringup gazebo_manual_mapping.launch world_name:=... keyboard_linear_speed:=0.25
+
+    键盘：w 前进 / s 后退 / a 左转 / d 右转 / 空格 停（在跑 roslaunch 的那个终端里按）。
+    地图存到 grid_map_manual_mapping/maps/ 下面（pgm + 同名 yaml）。
+  -->
+  <arg name="config_file" default="$(find bringup)/config/gazebo_manual_mapping.yaml"/>
+  <arg name="model" default="burger" doc="TurtleBot3 model: burger, waffle, waffle_pi"/>
+  <arg name="world_name" default="$(find turtlebot3_gazebo)/worlds/turtlebot3_maze.world"/>
+  <arg name="x_pos" default="-1.5"/>
+  <arg name="y_pos" default="2.5"/>
+  <arg name="z_pos" default="0.0"/>
+  <arg name="maps_dir" default="$(find grid_map_manual_mapping)/maps"/>
+  <arg name="launch_keyboard" default="true"/>
+  <!-- 键盘节点必须有终端才能读按键。默认给它单独开一个 gnome-terminal：
+       这样不管 roslaunch 是从真终端跑的、还是从 IDE / VS Code 里跑的（那种情况下节点拿到的
+       stdin 是 socket，读不到按键，机器人就像"不动"），键盘都能用。
+       不想要这个窗口就传 keyboard_launch_prefix:="" （然后自己在终端里 rosrun
+       grid_map_manual_mapping keyboard_teleop）；装了 xterm 的话也可以用 "xterm -e"。 -->
+  <arg name="keyboard_launch_prefix" default="gnome-terminal --"/>
+  <arg name="launch_rviz" default="true"/>
+  <arg name="launch_cmd_vel_watchdog" default="true"/>
+
+  <!-- 命令行快捷参数：直接改键盘速度 / 地图元信息，不用编辑 yaml -->
+  <arg name="keyboard_linear_speed" default="0.15"/>
+  <arg name="keyboard_angular_speed" default="0.6"/>
+  <arg name="map_resolution" default="0.05"/>
+  <arg name="map_width" default="200"/>
+  <arg name="map_height" default="200"/>
+  <arg name="map_origin_x" default="-5.0"/>
+  <arg name="map_origin_y" default="-5.0"/>
+  <arg name="default_mode" default="localization" doc="localization 或 mapping"/>
+
+  <!-- 1) 仿真 + 机器人 + 代价地图桥：不要静态地图、不要 gmapping（地图由 manual_mapping_node 出） -->
+  <include file="$(find bringup)/launch/gazebo_grid_map.launch">
+    <arg name="config_file" value="$(arg config_file)"/>
+    <arg name="model" value="$(arg model)"/>
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="x_pos" value="$(arg x_pos)"/>
+    <arg name="y_pos" value="$(arg y_pos)"/>
+    <arg name="z_pos" value="$(arg z_pos)"/>
+    <arg name="use_static_map" value="false"/>
+    <arg name="run_slam" value="false"/>
+    <arg name="launch_rviz" value="false"/>
+    <arg name="launch_cmd_vel_watchdog" value="$(arg launch_cmd_vel_watchdog)"/>
+  </include>
+
+  <!-- 2) 手动建图这一套（建图/定位节点 + 键盘 + RViz 面板）
+         代价地图桥上面 bringup 已经起了，这里关掉不要重复起。 -->
+  <include file="$(find grid_map_manual_mapping)/launch/manual_mapping.launch">
+    <arg name="config_file" value="$(arg config_file)"/>
+    <arg name="maps_dir" value="$(arg maps_dir)"/>
+    <arg name="launch_keyboard" value="$(arg launch_keyboard)"/>
+    <arg name="keyboard_launch_prefix" value="$(arg keyboard_launch_prefix)"/>
+    <arg name="launch_rviz" value="$(arg launch_rviz)"/>
+    <arg name="launch_costmap_bridge" value="false"/>
+  </include>
+
+  <!-- 3) 命令行给的参数覆盖 yaml（放在 include 之后，保证最后生效） -->
+  <param name="keyboard_teleop/linear_speed" value="$(arg keyboard_linear_speed)"/>
+  <param name="keyboard_teleop/angular_speed" value="$(arg keyboard_angular_speed)"/>
+  <param name="manual_mapping_node/resolution" value="$(arg map_resolution)"/>
+  <param name="manual_mapping_node/width" value="$(arg map_width)"/>
+  <param name="manual_mapping_node/height" value="$(arg map_height)"/>
+  <param name="manual_mapping_node/origin_x" value="$(arg map_origin_x)"/>
+  <param name="manual_mapping_node/origin_y" value="$(arg map_origin_y)"/>
+  <param name="manual_mapping_node/default_mode" value="$(arg default_mode)"/>
+</launch>

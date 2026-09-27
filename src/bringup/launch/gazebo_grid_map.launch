@@ -1,11 +1,11 @@
 <launch>
-  <arg name="config_file" default="$(find bringup)/config/gazebo_grid_map.yaml"/>
+  <arg name="config_file" default="$(find bringup)/config/gazebo_grid_map_maze.yaml"/>
 
   <arg name="model" default="burger" doc="TurtleBot3 model: burger, waffle, waffle_pi"/>
   <arg name="robot_name" default="turtlebot3_grid_map"/>
-  <arg name="world_name" default="$(find turtlebot3_gazebo)/worlds/turtlebot3_world.world"/>
-  <arg name="x_pos" default="-2.0"/>
-  <arg name="y_pos" default="-0.5"/>
+  <arg name="world_name" default="$(find turtlebot3_gazebo)/worlds/turtlebot3_maze.world"/>
+  <arg name="x_pos" default="-1.5"/>
+  <arg name="y_pos" default="2.5"/>
   <arg name="z_pos" default="0.0"/>
 
   <arg name="use_static_map" default="true"/>

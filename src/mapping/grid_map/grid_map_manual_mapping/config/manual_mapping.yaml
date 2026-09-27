@@ -1,0 +1,47 @@
+# grid_map_manual_mapping 的默认参数。
+# bringup 里有一份对应文件 src/bringup/config/gazebo_manual_mapping.yaml（内容可以覆盖这里）；
+# 用 launch 的 config_file 参数切换：
+#   roslaunch grid_map_manual_mapping manual_mapping.launch \
+#     config_file:=$(rospack find bringup)/config/gazebo_manual_mapping.yaml
+# maps_dir（地图存放目录）由 launch 注入，因为要 $(find) 才能算出绝对路径。
+
+manual_mapping_node:
+  # ---- 接口 ----
+  mode_topic: /manual_mapping/mode          # 收 "mapping" / "localization"（RViz 按钮/命令行都发这里）
+  status_topic: /manual_mapping/status      # 发人类可读的状态，RViz 面板显示
+  save_service: /manual_mapping/save_map    # std_srvs/Trigger：保存当前地图
+  scan_topic: /scan
+  map_topic: /map
+  map_frame: map
+  publish_rate: 1.0                         # /map 的发布周期 [Hz]
+  default_mode: localization                # 默认定位模式
+  publish_map_to_odom: true                 # 发布 map->odom 静态 tf（原来静态地图节点也是这么给的）
+
+  # ---- 地图元信息（同时是"新建一张地图"时的画布大小）----
+  resolution: 0.05
+  width: 200
+  height: 200
+  origin_x: -5.0
+  origin_y: -5.0
+
+  # ---- 建图 ----
+  max_range: 3.5                            # 超过这个距离的激光点不参与建图 [m]
+  hit_threshold: 2                          # 同一格被打到几次才算墙（抗噪）
+  clear_on_mapping_start: true              # 按"建图模式"时清空旧地图
+
+  # ---- 保存成 pgm 时的约定（与 map_server 一致）----
+  negate: 0
+  occupied_thresh: 0.65
+  free_thresh: 0.196
+
+keyboard_teleop:
+  cmd_vel_topic: /cmd_vel
+  linear_speed: 0.15                        # w/s 的前进后退速度 [m/s]
+  angular_speed: 0.6                        # a/d 的转向角速度 [rad/s]
+  publish_rate: 20.0                        # 发布 /cmd_vel 的频率 [Hz]
+  stop_burst: 0.5                           # 停车后再补发多久的 0 速度 [s]，保证停稳
+  # 松开键多少秒后自动停车（决定"点一下走多远"）：
+  #   0.6（默认）= 点一下走 0.6 s（0.15 m/s → 约 9 cm），按住则一直走；
+  #                比系统按键首次重复延迟（约 0.5 s）长一点，所以按住时不会一顿一顿
+  #   0          = 不自动停（按一下就一直走，直到按空格/x）—— 不建议
+  key_timeout: 0.6

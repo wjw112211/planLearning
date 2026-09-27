@@ -13,5 +13,6 @@
   <depend>grid_map_msgs</depend>
   <depend>grid_map_ros</depend>
   <depend>grid_map_sdf</depend>
+  <depend>logManager</depend>
   <exec_depend>tf2_ros</exec_depend>
 </package>

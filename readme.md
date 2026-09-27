@@ -91,12 +91,26 @@ LOG(INFO) << "原生 glog 用法不变";
 LOG_EVERY_T(INFO, 1.0) << "同一个调用点 1 秒最多打一次（第一次一定打）";
 ```
 
-日志文件默认落在工程最外层目录（和 `src`、`build`、`devel` 同级）的 `log/` 里，
-所以请在工程根目录下启动程序，例如：
+mapping 相关的节点（`occupancy_grid_to_cost_map`、`static_turtlebot3_world_map`、`cmd_vel_watchdog`、
+`turtlebot3_drive`）用第 4 个参数把日志文件名固定成 `mapping`，落盘就是 `log/mapping.INFO`、
+`log/mapping.WARNING` 这些文件：
+
+```cpp
+LOG_INIT("./log", 7, 6 * 3600, "mapping");
+```
+
+日志文件默认落在工程最外层目录（和 `src`、`build`、`devel` 同级）的 `log/` 里。
+相对路径（`./log`）不是相对进程 cwd，而是相对 catkin 工作空间根目录：`logManager` 会从可执行文件
+位置往上一层层找"同时有 `devel` 和 `src`"的那层，所以 roslaunch 在哪个目录下启动都一样：
 
 ```bash
-cd /home/wjw/Algorithm
-roslaunch bringup gazebo_grid_map.launch
+roslaunch bringup gazebo_grid_map.launch      # 日志照样落在 /home/wjw/Algorithm/log
 ```
+
+> 之所以要这样处理：roslaunch 默认把节点的 cwd 设成 `ROS_HOME`（`~/.ros`），直接用 cwd 的话
+> 日志会写到 `~/.ros/log`，工程目录里看不到 `log/`。想换位置就在 `LOG_INIT` 里传绝对路径。
+
+每次启动的第一条 INFO 日志会写明实际落盘位置，例如
+`I0927 16:08:47.132158 58478 logManager.cpp:242] logging to /home/wjw/Algorithm/log (keep 7 days)`。
 
 

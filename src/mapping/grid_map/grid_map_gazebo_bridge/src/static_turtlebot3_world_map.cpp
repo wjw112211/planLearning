@@ -5,6 +5,8 @@
 #include <ros/ros.h>
 #include <nav_msgs/OccupancyGrid.h>
 
+#include "logManager/logManager.h"
+
 class StaticTurtlebot3WorldMap
 {
 public:
@@ -26,7 +28,7 @@ public:
     timer_ = nodeHandle_.createTimer(ros::Duration(1.0 / publishRate_),
                                      &StaticTurtlebot3WorldMap::timerCallback, this);
 
-    ROS_INFO_STREAM("Publishing static " << mapType_ << " map on /map.");
+    LOG(INFO) << "Publishing static " << mapType_ << " map on /map.";
   }
 
 private:
@@ -46,8 +48,8 @@ private:
     } else if (mapType_ == "turtlebot3_square") {
       buildTurtlebot3Square();
     } else {
-      ROS_WARN_STREAM("Unknown static map type '" << mapType_
-                      << "'. Publishing an empty map.");
+      LOG(WARNING) << "Unknown static map type '" << mapType_
+                   << "'. Publishing an empty map.";
     }
   }
 
@@ -145,6 +147,9 @@ private:
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "static_turtlebot3_world_map");
+  // 日志文件名固定为 mapping（log/mapping.INFO、log/mapping.WARNING ...），保留 7 天
+  LOG_INIT("./log", 7, 6 * 3600, "mapping");
+
   StaticTurtlebot3WorldMap staticMap;
   ros::spin();
   return 0;

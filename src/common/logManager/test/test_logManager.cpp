@@ -26,10 +26,11 @@ static void Check(bool ok, const char* name) {
 }
 
 int main() {
-  // 测试日志写到 ./log_test，不按时间清理（keep_days=0），也不起清理线程（interval=0）
+  // 测试日志写到 ./log_test（相对路径会挂到工作空间根目录，也就是 /home/wjw/Algorithm/log_test），
+  // 不按时间清理（keep_days=0），也不起清理线程（interval=0）
   LOG_INIT("./log_test", 0, 0);
 
-  // 1. 原生 glog 用法还能用，日志会落到 ./log_test
+  // 1. 原生 glog 用法还能用，日志会落到 <工程根>/log_test
   LOG(INFO) << "logManager test start";
 
   // 下面这些调用都写在 lambda 里，所以 __FILE__/__LINE__ 固定为同一行，

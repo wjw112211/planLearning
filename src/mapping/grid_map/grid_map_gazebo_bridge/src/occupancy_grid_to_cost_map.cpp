@@ -11,6 +11,8 @@
 #include <grid_map_ros/GridMapRosConverter.hpp>
 #include <grid_map_sdf/SignedDistance2d.hpp>
 
+#include "logManager/logManager.h"
+
 // 代价取值沿用 ROS costmap_2d 的约定：
 //   0                 自由空间
 //   1 ... 252         膨胀代价，离障碍越近代价越大
@@ -53,10 +55,10 @@ public:
     mapSubscriber_ = nodeHandle_.subscribe(inputTopic_, 1,
                                            &OccupancyGridToCostMap::mapCallback, this);
 
-    ROS_INFO_STREAM("Building cost map: " << inputTopic_ << " -> " << gridMapTopic_
-                    << " and " << costmapTopic_ << " (lethal_threshold "
-                    << lethalThreshold_ << ", inscribed_radius " << inscribedRadius_
-                    << " m, inflation_radius " << inflationRadius_ << " m).");
+    LOG(INFO) << "Building cost map: " << inputTopic_ << " -> " << gridMapTopic_
+              << " and " << costmapTopic_ << " (lethal_threshold "
+              << lethalThreshold_ << ", inscribed_radius " << inscribedRadius_
+              << " m, inflation_radius " << inflationRadius_ << " m).";
   }
 
 private:
@@ -65,7 +67,8 @@ private:
     // 1) 占据栅格转成 grid_map 的 occupancy 图层。
     grid_map::GridMap gridMap;
     if (!grid_map::GridMapRosConverter::fromOccupancyGrid(*message, occupancyLayer_, gridMap)) {
-      ROS_WARN_THROTTLE(5.0, "Could not convert occupancy grid to grid map.");
+      // 地图消息会不停重发，这里按时间节流，避免同一条警告刷屏。
+      LOG_EVERY_T(WARNING, 5.0) << "Could not convert occupancy grid to grid map.";
       return;
     }
 
@@ -163,6 +166,9 @@ private:
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "occupancy_grid_to_cost_map");
+  // 日志文件名固定为 mapping（log/mapping.INFO、log/mapping.WARNING ...），保留 7 天
+  LOG_INIT("./log", 7, 6 * 3600, "mapping");
+
   OccupancyGridToCostMap converter;
   ros::spin();
   return 0;

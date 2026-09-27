@@ -3,6 +3,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
 
+#include "logManager/logManager.h"
+
 /**
  * 速度指令看门狗（watchdog）。
  *
@@ -29,8 +31,8 @@ public:
     timer_ = nodeHandle_.createTimer(ros::Duration(1.0 / publishRate_),
                                      &CmdVelWatchdog::timerCallback, this);
 
-    ROS_INFO_STREAM("cmd_vel watchdog on '" << cmdVelTopic_ << "', stop after "
-                    << timeout_ << " s without a new command.");
+    LOG(INFO) << "cmd_vel watchdog on '" << cmdVelTopic_ << "', stop after "
+              << timeout_ << " s without a new command.";
   }
 
 private:
@@ -63,8 +65,8 @@ private:
 
     const double elapsed = (ros::Time::now() - lastCommandTime_).toSec();
     if (elapsed > timeout_) {
-      ROS_INFO_STREAM("No velocity command for " << elapsed
-                      << " s, publishing a stop command.");
+      LOG(INFO) << "No velocity command for " << elapsed
+                << " s, publishing a stop command.";
       publishStopCommand();
     }
   }
@@ -92,6 +94,9 @@ private:
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "cmd_vel_watchdog");
+  // 日志文件名固定为 mapping（log/mapping.INFO、log/mapping.WARNING ...），保留 7 天
+  LOG_INIT("./log", 7, 6 * 3600, "mapping");
+
   CmdVelWatchdog watchdog;
   ros::spin();
   return 0;

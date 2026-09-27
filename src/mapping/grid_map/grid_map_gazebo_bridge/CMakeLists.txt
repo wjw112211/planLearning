@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   grid_map_msgs
   grid_map_ros
   grid_map_sdf
+  logManager
 )
 
 catkin_package(
@@ -20,6 +21,7 @@ catkin_package(
     grid_map_msgs
     grid_map_ros
     grid_map_sdf
+    logManager
 )
 
 include_directories(${catkin_INCLUDE_DIRS})

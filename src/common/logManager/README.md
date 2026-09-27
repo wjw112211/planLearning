@@ -2,7 +2,10 @@
 
 在 glog 外面包了一层，保留 glog 的全部原生用法（`LOG(INFO)`、`VLOG()`、`CHECK()` ...），另外加了三个功能：
 
-1. **日志离线保存**：`LOG_INIT()` 之后所有日志都会写到工程最外层目录（和 `src`、`build`、`devel` 同级）的 `log/` 里，用相对路径 `./log`。
+1. **日志离线保存**：`LOG_INIT()` 之后所有日志都会写到工程最外层目录（和 `src`、`build`、`devel` 同级）的 `log/` 里。
+   相对路径（默认 `./log`）不是相对进程 cwd，而是相对 **catkin 工作空间根目录**：包会从可执行文件位置往上一层层找
+   "同时有 `devel` 和 `src`" 的那层。因为 roslaunch 默认把节点 cwd 设成 `ROS_HOME`（`~/.ros`），
+   直接用 cwd 的话日志会跑到 `~/.ros/log` 去、工程目录里看不到 `log/`。
 2. **定时删除**：日志默认保留 7 天，启动时先清理一次，之后后台线程按周期再清理。
 3. **按时间节流**：`LOG_EVERY_T(INFO, 1.0)`，同一个调用点 1 秒最多打印一次（第一次一定打印）。
 
@@ -40,9 +43,10 @@ target_link_libraries(my_node ${catkin_LIBRARIES})
 
 int main(int argc, char** argv) {
   ros::init(argc, argv, "my_node");
-  LOG_INIT();                 // 默认写到 ./log，保留 7 天
+  LOG_INIT();                 // 默认写到 ./log，保留 7 天，日志文件名用可执行名（my_node）
   // LOG_INIT("./log", 3);    // 也可以：保留 3 天
   // LOG_INIT("./log", 3, 600); // 再指定清理周期（秒）
+  // LOG_INIT("./log", 7, 6 * 3600, "mapping"); // 再指定日志文件名前缀，落盘为 log/mapping.INFO 等
 
   LOG(INFO) << "原生 glog 用法不变";
   LOG_EVERY_T(INFO, 1.0) << "这条 1 秒最多打一次";
@@ -165,6 +169,10 @@ log/
 
 每个级别一个文件 + 一个软链接，`tail -f log/my_node.INFO` 就能实时看日志；超过保留天数的文件由本包的清理线程删掉。
 
+文件名前缀默认取可执行名，`LOG_INIT` 的第 4 个参数可以把它固定下来，例如 `LOG_INIT("./log", 7, 6 * 3600, "mapping")`
+会让文件变成 `mapping.INFO`、`mapping.WARNING` 等；多个进程用同一个前缀时，带时间戳和进程号的真实日志文件互不覆盖，
+只有 `mapping.INFO` 这类软链接会指向最后启动的那个进程。
+
 ### 线程安全
 
 `LOG(...)`、`CHECK(...)`、`VLOG(...)` 都是线程安全的，`<<` 到同一条消息也是原子的；本包新增的 `LOG_EVERY_T` 同样线程安全（同一个调用点共用一把锁保护时间戳）。
@@ -177,8 +185,8 @@ log/
 ```bash
 cd /home/wjw/Algorithm
 catkin_make                                        # 编出 devel/lib/logManager/test_logManager
-./devel/lib/logManager/test_logManager             # 手动跑，日志落在 ./log_test
-# 或者用 ctest（工作目录是 build/common/logManager，日志落在那里）
+./devel/lib/logManager/test_logManager             # 手动跑，日志落在 <工程根>/log_test
+# 或者用 ctest（工作目录是 build/common/logManager，日志同样落在 <工程根>/log_test）
 cd build && ctest -R test_logManager -V
 ```
 
@@ -191,8 +199,11 @@ cd build && ctest -R test_logManager -V
 
 ## 注意
 
-* `LOG_INIT()` 请在 `main()` 里调用一次；因为用的是 `./log` 这样的相对路径，所以程序请在工程根目录下启动
-  （例如 `cd ~/Algorithm && roslaunch bringup ...`），日志才会落在 `~/Algorithm/log` 里。
+* `LOG_INIT()` 请在 `main()` 里调用一次。传相对路径时包会把它挂到工作空间根目录下，所以
+  `roslaunch bringup gazebo_grid_map.launch` 在哪个目录下启动都一样，日志都落在 `~/Algorithm/log`；
+  想写到别的地方就传绝对路径。实在找不到工作空间（例如 `catkin_make install` 之后从 `/opt/ros` 下跑）时，
+  才会退回"相对进程 cwd"的老语义，这时请自己 `cd` 到想落盘的位置再启动。
+* 启动后第一条 INFO 日志会写明实际落盘位置（`logging to <目录> (keep N days)`），日志找不到时先看它。
 * `keep_days <= 0` 表示不按时间清理（`cleanup_interval_sec <= 0` 表示只清理一次、不起后台线程）。
 * 一个进程只初始化一次（多线程/多次调用都安全，只有第一次生效）。
 * 退出时（或者手动调用 `logManager::ShutdownLogging()`）会停掉清理线程并 flush。

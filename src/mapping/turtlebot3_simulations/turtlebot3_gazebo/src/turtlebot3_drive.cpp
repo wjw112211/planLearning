@@ -18,13 +18,16 @@
 
 #include "turtlebot3_gazebo/turtlebot3_drive.h"
 
+#include "logManager/logManager.h"
+
 Turtlebot3Drive::Turtlebot3Drive()
   : nh_priv_("~")
 {
   //Init gazebo ros turtlebot3 node
-  ROS_INFO("TurtleBot3 Simulation Node Init");
+  LOG(INFO) << "TurtleBot3 Simulation Node Init";
   auto ret = init();
-  ROS_ASSERT(ret);
+  // 原来这里是 ROS_ASSERT(ret)，换成 glog 的 CHECK：条件不成立同样打 FATAL 并中断
+  CHECK(ret);
 }
 
 Turtlebot3Drive::~Turtlebot3Drive()
@@ -162,6 +165,9 @@ bool Turtlebot3Drive::controlLoop()
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "turtlebot3_drive");
+  // 日志文件名固定为 mapping（log/mapping.INFO、log/mapping.WARNING ...），保留 7 天
+  LOG_INIT("./log", 7, 6 * 3600, "mapping");
+
   Turtlebot3Drive turtlebot3_drive;
 
   ros::Rate loop_rate(125);

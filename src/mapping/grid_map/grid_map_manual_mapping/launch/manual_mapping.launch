@@ -1,0 +1,58 @@
+<launch>
+  <!--
+    手动建图 / 定位（这个 launch 只起"建图这一套"，假定 Gazebo + 机器人已经在跑）：
+      * manual_mapping_node : 建图/定位，发 /map，提供保存地图服务
+      * keyboard_teleop     : 键盘 wsad -> /cmd_vel
+      * rviz                : 带"定位模式 / 建图模式 / 保存地图"三个按钮的面板
+      * 可选 grid_map_gazebo_bridge : /map -> /grid_map + /costmap
+
+    想一键把仿真也起起来，用 bringup 里的：
+      roslaunch bringup gazebo_manual_mapping.launch
+  -->
+  <arg name="config_file" default="$(find grid_map_manual_mapping)/config/manual_mapping.yaml"/>
+  <arg name="maps_dir" default="$(find grid_map_manual_mapping)/maps"/>
+  <arg name="launch_keyboard" default="true"/>
+  <!-- 键盘节点要一个终端才能读按键；roslaunch 一般会把当前终端给它。
+       如果不灵，可以传 keyboard_launch_prefix:="xterm -e" 让它另开一个小窗口。 -->
+  <arg name="keyboard_launch_prefix" default=""/>
+  <arg name="launch_rviz" default="true"/>
+  <arg name="rviz_config" default="$(find grid_map_manual_mapping)/rviz/manual_mapping.rviz"/>
+  <arg name="launch_costmap_bridge" default="true"/>
+  <!-- 代价地图参数，透传给 grid_map_gazebo_bridge。
+       inscribed_radius 是"内切膨胀带的总宽度"（每侧 = 它的一半）：0.20 = 每侧 0.10 m -->
+  <arg name="lethal_threshold" default="65"/>
+  <arg name="inscribed_radius" default="0.20"/>
+  <arg name="inflation_radius" default="0.50"/>
+  <arg name="cost_scaling_factor" default="10.0"/>
+
+  <rosparam command="load" file="$(arg config_file)"/>
+
+  <node pkg="grid_map_manual_mapping"
+        type="manual_mapping_node"
+        name="manual_mapping_node"
+        output="screen">
+    <param name="maps_dir" value="$(arg maps_dir)"/>
+  </node>
+
+  <node pkg="grid_map_manual_mapping"
+        type="keyboard_teleop"
+        name="keyboard_teleop"
+        output="screen"
+        launch-prefix="$(arg keyboard_launch_prefix)"
+        if="$(arg launch_keyboard)"/>
+
+  <include file="$(find grid_map_gazebo_bridge)/launch/grid_map_gazebo_bridge.launch"
+           if="$(arg launch_costmap_bridge)">
+    <arg name="lethal_threshold" value="$(arg lethal_threshold)"/>
+    <arg name="inscribed_radius" value="$(arg inscribed_radius)"/>
+    <arg name="inflation_radius" value="$(arg inflation_radius)"/>
+    <arg name="cost_scaling_factor" value="$(arg cost_scaling_factor)"/>
+  </include>
+
+  <node pkg="rviz"
+        type="rviz"
+        name="rviz"
+        args="-d $(arg rviz_config)"
+        output="screen"
+        if="$(arg launch_rviz)"/>
+</launch>

@@ -1,14 +1,30 @@
 <launch>
+  <!-- 输入：占据栅格地图，来自 static_turtlebot3_world_map 或 gmapping -->
   <arg name="input_topic" default="/map"/>
-  <arg name="output_topic" default="/grid_map"/>
+  <!-- 输出：grid_map 形式的代价地图，图层为 occupancy + cost -->
+  <arg name="grid_map_topic" default="/grid_map"/>
+  <!-- 输出：OccupancyGrid 形式的代价地图，供 RViz 显示和规划器使用 -->
+  <arg name="costmap_topic" default="/costmap"/>
+
+  <!-- 代价地图参数。inscribed_radius 是"内切膨胀带的总宽度"（每侧 = 它的一半），
+       0.20 = 每侧 0.10 m 的格子取 253；costmap_2d 里这个参数是"半径"，含义不同 -->
+  <arg name="lethal_threshold" default="65"/>
+  <arg name="inscribed_radius" default="0.20"/>
+  <arg name="inflation_radius" default="0.50"/>
+  <arg name="cost_scaling_factor" default="10.0"/>
 
   <node pkg="grid_map_gazebo_bridge"
-        type="occupancy_grid_to_grid_map"
-        name="occupancy_grid_to_grid_map"
+        type="occupancy_grid_to_cost_map"
+        name="occupancy_grid_to_cost_map"
         output="screen">
     <param name="input_topic" value="$(arg input_topic)"/>
-    <param name="output_topic" value="$(arg output_topic)"/>
+    <param name="grid_map_topic" value="$(arg grid_map_topic)"/>
+    <param name="costmap_topic" value="$(arg costmap_topic)"/>
     <param name="occupancy_layer" value="occupancy"/>
-    <param name="flat_layer" value="flat"/>
+    <param name="cost_layer" value="cost"/>
+    <param name="lethal_threshold" value="$(arg lethal_threshold)"/>
+    <param name="inscribed_radius" value="$(arg inscribed_radius)"/>
+    <param name="inflation_radius" value="$(arg inflation_radius)"/>
+    <param name="cost_scaling_factor" value="$(arg cost_scaling_factor)"/>
   </node>
 </launch>

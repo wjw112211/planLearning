@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>grid_map_manual_mapping</name>
+  <version>0.1.0</version>
+  <description>
+    手动建图 / 定位。键盘 wsad 控制机器人运动，用激光传感器建图；
+    RViz 面板上有三个按钮：定位模式 / 建图模式 / 保存地图。
+    默认定位模式（加载 maps/ 里最新的 pgm+yaml），按建图模式后开始新建地图，
+    按保存地图把结果写成 maps/map_&lt;时间&gt;.pgm + .yaml。
+  </description>
+
+  <maintainer email="wjw@example.com">wjw</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>logManager</depend>
+  <depend>rviz</depend>
+  <depend>pluginlib</depend>
+  <depend>yaml-cpp</depend>
+  <build_depend>qtbase5-dev</build_depend>
+  <exec_depend>libqt5-widgets</exec_depend>
+
+  <!-- 代价地图桥：/map -> /grid_map + /costmap（bringup 里也会起，单独立用这个包时需要） -->
+  <exec_depend>grid_map_gazebo_bridge</exec_depend>
+
+  <export>
+    <rviz plugin="${prefix}/plugin_description.xml"/>
+  </export>
+</package>

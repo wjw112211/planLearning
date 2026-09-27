@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   tf
   gazebo_ros
+  logManager
 )
 
 find_package(gazebo REQUIRED)
@@ -40,7 +41,7 @@ find_package(gazebo REQUIRED)
 ################################################################################
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs sensor_msgs geometry_msgs nav_msgs tf gazebo_ros
+  CATKIN_DEPENDS roscpp std_msgs sensor_msgs geometry_msgs nav_msgs tf gazebo_ros logManager
   DEPENDS GAZEBO
 )
 
@@ -59,10 +60,15 @@ add_executable(turtlebot3_drive src/turtlebot3_drive.cpp)
 add_dependencies(turtlebot3_drive ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(turtlebot3_drive ${catkin_LIBRARIES} ${GAZEBO_LIBRARIES})
 
+# Gazebo 差速驱动插件没有指令超时，用看门狗在停止发指令后把机器人停下来。
+add_executable(cmd_vel_watchdog src/cmd_vel_watchdog.cpp)
+add_dependencies(cmd_vel_watchdog ${catkin_EXPORTED_TARGETS})
+target_link_libraries(cmd_vel_watchdog ${catkin_LIBRARIES})
+
 ################################################################################
 # Install
 ################################################################################
-install(TARGETS turtlebot3_drive
+install(TARGETS turtlebot3_drive cmd_vel_watchdog
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

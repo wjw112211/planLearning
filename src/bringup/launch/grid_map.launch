@@ -1,0 +1,115 @@
+<launch>
+  <arg name="config_file" default="$(find bringup)/config/grid_map.yaml"/>
+
+  <arg name="model" default="burger" doc="TurtleBot3 model: burger, waffle, waffle_pi"/>
+  <arg name="robot_name" default="turtlebot3_grid_map"/>
+  <arg name="world_name" default="$(find turtlebot3_gazebo)/worlds/turtlebot3_maze.world"/>
+  <arg name="x_pos" default="-1.5"/>
+  <arg name="y_pos" default="2.5"/>
+  <arg name="z_pos" default="0.0"/>
+
+  <arg name="use_static_map" default="true"/>
+  <arg name="run_slam" default="false"/>
+  <arg name="run_autonomous_drive" default="false"/>
+  <arg name="launch_rviz" default="true"/>
+  <arg name="launch_cmd_vel_watchdog" default="true"/>
+
+  <!-- 静态地图从哪来：
+         file    = 用手动建图（grid_map_manual_mapping）存下来的 pgm + yaml。
+                   具体用哪一张在 config_file 的 static_map_loader.map_file 里配，
+                   改个文件名就换地图，不用动这个 launch。
+         builtin = 原来那张硬编码地图（static_turtlebot3_world_map，map_type: turtlebot3_world / turtlebot3_square）。
+       想要完全不要静态地图（例如配合 run_slam:=true 用 gmapping），就传 use_static_map:=false。 -->
+  <arg name="static_map_source" default="file" doc="file | builtin"/>
+  <arg name="maps_dir" default="$(find grid_map_manual_mapping)/maps"/>
+
+  <!-- 下面两个是派生出来的开关，平时不用传（运行时按上面几个 arg 算出来） -->
+  <arg name="load_static_map_from_file"
+       default="$(eval arg('use_static_map') and arg('static_map_source') == 'file' and not arg('run_slam'))"/>
+  <arg name="load_builtin_static_map"
+       default="$(eval arg('use_static_map') and arg('static_map_source') == 'builtin' and not arg('run_slam'))"/>
+
+  <rosparam command="load" file="$(arg config_file)"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <param name="robot_description"
+         command="$(find xacro)/xacro $(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro"/>
+
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_footprint_to_base_link"
+        args="0 0 0.01 0 0 0 base_footprint base_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_base_scan"
+        args="-0.032 0 0.172 0 0 0 base_link base_scan"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_wheel_left"
+        args="0 0.08 0.023 0 0 -1.57 base_link wheel_left_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_wheel_right"
+        args="0 -0.08 0.023 0 0 -1.57 base_link wheel_right_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_caster_back"
+        args="-0.081 0 -0.004 0 0 -1.57 base_link caster_back_link"/>
+  <node pkg="tf2_ros" type="static_transform_publisher" name="base_link_to_imu"
+        args="-0.032 0 0.068 0 0 0 base_link imu_link"/>
+
+  <node pkg="gazebo_ros"
+        type="spawn_model"
+        name="spawn_turtlebot3"
+        output="screen"
+        args="-urdf -model $(arg robot_name) -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos) -param robot_description"/>
+
+  <node pkg="turtlebot3_gazebo"
+        type="cmd_vel_watchdog"
+        name="cmd_vel_watchdog"
+        output="screen"
+        if="$(arg launch_cmd_vel_watchdog)"/>
+
+  <node pkg="gmapping"
+        type="slam_gmapping"
+        name="slam_gmapping"
+        output="screen"
+        if="$(arg run_slam)"/>
+
+  <!-- 静态地图（文件版）：加载手动建图存的 pgm + yaml，发 /map，并自己发布 map->odom。
+       用哪张图由 config_file 里 static_map_loader.map_file 决定（默认 latest = 最新的一张）。 -->
+  <node pkg="grid_map_manual_mapping"
+        type="manual_mapping_node"
+        name="static_map_loader"
+        output="screen"
+        if="$(arg load_static_map_from_file)">
+    <param name="maps_dir" value="$(arg maps_dir)"/>
+  </node>
+
+  <!-- 静态地图（内置版）：原来那套硬编码地图 -->
+  <node pkg="grid_map_gazebo_bridge"
+        type="static_turtlebot3_world_map"
+        name="static_turtlebot3_world_map"
+        output="screen"
+        if="$(arg load_builtin_static_map)"/>
+
+  <!-- 只有内置版需要额外的 map->odom（文件版由 static_map_loader 自己发） -->
+  <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="map_to_odom"
+        args="0 0 0 0 0 0 map odom"
+        if="$(arg load_builtin_static_map)"/>
+
+  <node pkg="grid_map_gazebo_bridge"
+        type="occupancy_grid_to_cost_map"
+        name="occupancy_grid_to_cost_map"
+        output="screen"/>
+
+  <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_simulation.launch"
+           if="$(arg run_autonomous_drive)"/>
+
+  <node pkg="rviz"
+        type="rviz"
+        name="rviz"
+        args="-d $(find turtlebot3_gazebo)/rviz/gazebo_grid_map.rviz"
+        output="screen"
+        if="$(arg launch_rviz)"/>
+</launch>

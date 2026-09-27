@@ -1,0 +1,63 @@
+# gazebo_manual_mapping.launch 的参数：仿真 + 遥控 + 手动建图 + 代价地图，全在这一份里。
+# 用 roslaunch 参数 config_file 可以换别的配置：
+#   roslaunch bringup gazebo_manual_mapping.launch config_file:=/path/to/other.yaml
+
+# 速度看门狗（bringup 的 launch 会起它）：键盘节点一直在发 /cmd_vel（空闲时发 0），
+# 万一键盘节点被 Ctrl+C 杀掉，靠它把机器人停下来。
+cmd_vel_watchdog:
+  cmd_vel_topic: /cmd_vel
+  timeout: 0.5
+  publish_rate: 20.0
+
+# /map -> /grid_map + /costmap（RViz 里"代价地图"那一层）
+occupancy_grid_to_cost_map:
+  input_topic: /map
+  grid_map_topic: /grid_map
+  costmap_topic: /costmap
+  occupancy_layer: occupancy
+  cost_layer: cost
+  lethal_threshold: 65.0
+  inscribed_radius: 0.20
+  inflation_radius: 0.50
+  cost_scaling_factor: 10.0
+
+manual_mapping_node:
+  # ---- 接口（RViz 面板按这两个名字收发，改的话面板会自动读回来）----
+  mode_topic: /manual_mapping/mode          # "mapping" / "localization"
+  status_topic: /manual_mapping/status
+  save_service: /manual_mapping/save_map
+  scan_topic: /scan
+  map_topic: /map
+  map_frame: map
+  odom_frame: odom
+  publish_rate: 1.0                         # /map 发布周期 [Hz]
+  default_mode: localization                # 默认定位模式
+  publish_map_to_odom: true                 # 发 map->odom 静态 tf
+
+  # ---- 地图元信息：既是保存成 pgm 时写进 yaml 的内容，也是"新建地图"时的画布 ----
+  # 现在这套数值覆盖 x/y ∈ [-5, 5] m，正好罩住 6x6 m 的迷宫；
+  # 换更大的世界就同步放大 width/height（或者调 origin），否则地图会缺角。
+  resolution: 0.05                          # [m/格]
+  width: 200                                # 列数
+  height: 200                               # 行数
+  origin_x: -5.0                            # 左下角 x [m]
+  origin_y: -5.0                            # 左下角 y [m]
+
+  # ---- 建图 ----
+  max_range: 3.5                            # 超过这个距离的激光点不参与建图 [m]
+  hit_threshold: 2                          # 同一格被打到几次才算墙（抗噪）
+  clear_on_mapping_start: true              # 按"建图模式"时清空旧地图（false = 在旧图上接着建）
+
+  # ---- 写成 pgm + yaml 时的约定（与 map_server 一致）----
+  negate: 0
+  occupied_thresh: 0.65
+  free_thresh: 0.196
+
+keyboard_teleop:
+  cmd_vel_topic: /cmd_vel
+  linear_speed: 0.15                        # w/s 前进后退速度 [m/s]，想快就改这里
+  angular_speed: 0.6                        # a/d 转向角速度 [rad/s]
+  publish_rate: 20.0                        # /cmd_vel 发布频率 [Hz]
+  stop_burst: 0.5                           # 停车后再补发多久的 0 速度 [s]
+  # 松开键多少秒后自动停车：0.6 = 点一下走 0.6 s（约 9 cm），按住一直走；0 = 按一下就一直走
+  key_timeout: 0.6

@@ -1,0 +1,10 @@
+<library path="lib/libmanual_mapping_panel">
+  <class name="grid_map_manual_mapping/ManualMappingPanel"
+         type="grid_map_manual_mapping::ManualMappingPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      手动建图的三个按钮：定位模式（加载 maps/ 里最新的 pgm+yaml）、
+      建图模式（清空地图并用键盘 wsad 边走边建）、保存地图（写成 pgm+yaml）。
+    </description>
+  </class>
+</library>

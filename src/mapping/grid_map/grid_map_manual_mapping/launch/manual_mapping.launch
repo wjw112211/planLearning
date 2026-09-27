@@ -18,7 +18,8 @@
   <arg name="launch_rviz" default="true"/>
   <arg name="rviz_config" default="$(find grid_map_manual_mapping)/rviz/manual_mapping.rviz"/>
   <arg name="launch_costmap_bridge" default="true"/>
-  <!-- 代价地图参数，透传给 grid_map_gazebo_bridge -->
+  <!-- 代价地图参数，透传给 grid_map_gazebo_bridge。
+       inscribed_radius 是"内切膨胀带的总宽度"（每侧 = 它的一半）：0.20 = 每侧 0.10 m -->
   <arg name="lethal_threshold" default="65"/>
   <arg name="inscribed_radius" default="0.20"/>
   <arg name="inflation_radius" default="0.50"/>

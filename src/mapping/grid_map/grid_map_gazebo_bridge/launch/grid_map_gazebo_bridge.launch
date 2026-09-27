@@ -6,7 +6,8 @@
   <!-- 输出：OccupancyGrid 形式的代价地图，供 RViz 显示和规划器使用 -->
   <arg name="costmap_topic" default="/costmap"/>
 
-  <!-- 代价地图参数，含义与 costmap_2d 的 obstacle_layer / inflation_layer 一致 -->
+  <!-- 代价地图参数。inscribed_radius 是"内切膨胀带的总宽度"（每侧 = 它的一半），
+       0.20 = 每侧 0.10 m 的格子取 253；costmap_2d 里这个参数是"半径"，含义不同 -->
   <arg name="lethal_threshold" default="65"/>
   <arg name="inscribed_radius" default="0.20"/>
   <arg name="inflation_radius" default="0.50"/>

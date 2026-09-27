@@ -43,7 +43,7 @@
   <arg name="default_mode" default="localization" doc="localization 或 mapping"/>
 
   <!-- 1) 仿真 + 机器人 + 代价地图桥：不要静态地图、不要 gmapping（地图由 manual_mapping_node 出） -->
-  <include file="$(find bringup)/launch/gazebo_grid_map.launch">
+  <include file="$(find bringup)/launch/grid_map.launch">
     <arg name="config_file" value="$(arg config_file)"/>
     <arg name="model" value="$(arg model)"/>
     <arg name="world_name" value="$(arg world_name)"/>

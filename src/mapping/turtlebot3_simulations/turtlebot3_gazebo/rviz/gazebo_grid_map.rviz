@@ -3,7 +3,9 @@ Panels:
     Help Height: 70
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /Cost Map1
+        - /Laser Scan1
       Splitter Ratio: 0.6315789222717285
     Tree Height: 412
   - Class: rviz/Views
@@ -36,7 +38,7 @@ Visualization Manager:
       Plane Cell Count: 20
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.8999999761581421
+    - Alpha: 0.800000011920929
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
@@ -55,7 +57,7 @@ Visualization Manager:
       Axis: Z
       Channel Name: intensity
       Class: rviz/LaserScan
-      Color: 0; 255; 0
+      Color: 252; 233; 79
       Color Transformer: FlatColor
       Decay Time: 0
       Enabled: true
@@ -67,7 +69,7 @@ Visualization Manager:
       Queue Size: 10
       Selectable: true
       Size (Pixels): 3
-      Size (m): 0.009999999776482582
+      Size (m): 0.019999999552965164
       Style: Flat Squares
       Topic: /scan
       Unreliable: false
@@ -208,10 +210,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 81.33722686767578
+      Scale: 119.79399108886719
       Target Frame: <Fixed Frame>
-      X: 0
-      Y: 0
+      X: -1.639365792274475
+      Y: 1.6197396516799927
     Saved: ~
 Window Geometry:
   Displays:

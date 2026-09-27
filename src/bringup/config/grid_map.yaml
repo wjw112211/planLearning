@@ -1,14 +1,3 @@
-# 迷宫世界（worlds/turtlebot3_maze.world）专用的运行参数，其它参数与
-# config/gazebo_grid_map.yaml 完全一致，只是把静态地图换成了"由 data 描述"的版本。
-#
-# 用法（原来的 gazebo_grid_map.yaml 一个字都不用改）：
-#   roslaunch bringup gazebo_grid_map.launch \
-#     config_file:=$(rospack find bringup)/config/gazebo_grid_map_maze.yaml
-#
-# 注意：map_type: walls 需要 static_turtlebot3_world_map.cpp 支持这个类型，
-#       补丁见 docs/gazebo_maze_world.md 第 9 节；没打补丁之前请改用
-#       use_static_map:=false run_slam:=true（让 gmapping 现场建图）。
-
 cmd_vel_watchdog:
   cmd_vel_topic: /cmd_vel
   timeout: 0.5
@@ -32,22 +21,6 @@ slam_gmapping:
   xmax: 20.0
   ymax: 20.0
 
-
-# 内置那张硬编码地图的节点（static_turtlebot3_world_map）默认不启动它。
-# 只有传 static_map_source:=builtin 时才会起；那时它用代码里的默认值
-#   frame_id=map, map_type=turtlebot3_world, 200x200 @ 0.05 m, origin=(-5,-5), publish_rate=1.0
-# 它的参数 map_type 只认两个值：turtlebot3_world / turtlebot3_square。
-# 想显式配置就把下面几行取消注释：
-# static_turtlebot3_world_map:
-#   frame_id: map
-#   map_type: turtlebot3_world
-#   resolution: 0.05
-#   width: 200
-#   height: 200
-#   origin_x: -5.0
-#   origin_y: -5.0
-#   publish_rate: 1.0
-
 occupancy_grid_to_cost_map:
   input_topic: /map
   grid_map_topic: /grid_map
@@ -57,7 +30,7 @@ occupancy_grid_to_cost_map:
   lethal_threshold: 65.0
   inscribed_radius: 0.20
   inflation_radius: 0.50
-  cost_scaling_factor: 10.0
+  cost_scaling_factor: 5.0
 
 # ---------------------------------------------------------------------------
 # 静态地图（文件版）

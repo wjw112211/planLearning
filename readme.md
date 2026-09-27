@@ -64,7 +64,11 @@ source devel/setup.bash
 
 启动gazebo和rviz,打开地图，可以看到机器人仿真环境以及生成的二维栅格地图，以及相应的代价地图。
 ```bash
-roslaunch bringup gazebo_grid_map.launch
+# 建图
+roslaunch bringup manual_mapping.launch
+
+# 定位，默认使用最新的地图
+roslaunch bringup grid_map.launch
 ```
 
 # 三、日志模块 logManager

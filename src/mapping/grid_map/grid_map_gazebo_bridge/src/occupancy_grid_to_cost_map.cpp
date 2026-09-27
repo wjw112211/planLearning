@@ -19,6 +19,12 @@
 //   253               内切膨胀障碍，紧贴障碍表面的栅格
 //   254               致命障碍
 //   未知（NaN）        未知区域，转回 OccupancyGrid 时表现为 -1
+//
+// 关于 inscribed_radius（本节点的约定，和 costmap_2d 略有不同）：
+//   costmap_2d 里它是"机器人的内切半径"，带子是每侧 inscribed_radius 宽；
+//   本节点把它当成"内切带的**总宽度**"，所以每侧宽度 = inscribed_radius / 2，
+//   即：到障碍中心的距离 <= inscribed_radius/2 的栅格取 253。
+//   （0.20 → 每侧 0.10 m；由于距离是量到障碍栅格中心的，从墙面算还要再减半个栅格）
 namespace {
 const float kFreeSpace = 0.0f;
 const float kInscribedInflatedObstacle = 253.0f;
@@ -50,6 +56,9 @@ public:
     privateNodeHandle_.param("inflation_radius", inflationRadius_, 0.50);
     privateNodeHandle_.param("cost_scaling_factor", costScalingFactor_, 10.0);
 
+    // inscribed_radius 按"内切带总宽度"用：每侧宽度是它的一半。
+    inscribedHalfWidth_ = 0.5 * inscribedRadius_;
+
     gridMapPublisher_ = nodeHandle_.advertise<grid_map_msgs::GridMap>(gridMapTopic_, 1, true);
     costmapPublisher_ = nodeHandle_.advertise<nav_msgs::OccupancyGrid>(costmapTopic_, 1, true);
     mapSubscriber_ = nodeHandle_.subscribe(inputTopic_, 1,
@@ -58,7 +67,8 @@ public:
     LOG(INFO) << "Building cost map: " << inputTopic_ << " -> " << gridMapTopic_
               << " and " << costmapTopic_ << " (lethal_threshold "
               << lethalThreshold_ << ", inscribed_radius " << inscribedRadius_
-              << " m, inflation_radius " << inflationRadius_ << " m).";
+              << " m -> 每侧 " << inscribedHalfWidth_ << " m,"
+              << " inflation_radius " << inflationRadius_ << " m).";
   }
 
 private:
@@ -133,13 +143,16 @@ private:
       return kFreeSpace;
     }
 
-    // 落在内切半径内（紧贴障碍）的栅格直接取内切膨胀代价。
-    if (clearance <= inscribedRadius_) {
+    // 落在内切膨胀带内（紧贴障碍）的栅格直接取内切膨胀代价。
+    // 这里的边界是 inscribed_radius/2：inscribed_radius 按"带子总宽度"理解，
+    // 所以每侧宽度是它的一半（0.20 → 每侧 0.10 m）。
+    if (clearance <= inscribedHalfWidth_) {
       return kInscribedInflatedObstacle;
     }
 
-    // 内切半径到膨胀半径之间：代价随距离指数衰减。
-    const double factor = std::exp(-costScalingFactor_ * (clearance - inscribedRadius_));
+    // 内切带边界到膨胀半径之间：代价随距离指数衰减。
+    // 衰减的起点必须跟着内切带的边界一起挪，否则这一段会算出 > 253 的值。
+    const double factor = std::exp(-costScalingFactor_ * (clearance - inscribedHalfWidth_));
     float value = static_cast<float>(std::ceil((kInscribedInflatedObstacle - 1.0f) * factor));
     if (value < 1.0f) {
       value = kFreeSpace;
@@ -159,6 +172,7 @@ private:
   std::string costLayer_;
   double lethalThreshold_;
   double inscribedRadius_;
+  double inscribedHalfWidth_;
   double inflationRadius_;
   double costScalingFactor_;
 };

@@ -2,7 +2,7 @@
 <package format="2">
   <name>grid_map_gazebo_bridge</name>
   <version>0.1.0</version>
-  <description>Convert a ROS occupancy grid into a planar grid map.</description>
+  <description>Convert a ROS occupancy grid into a cost map.</description>
   <maintainer email="wjw@todo.todo">wjw</maintainer>
   <license>BSD</license>
 
@@ -12,5 +12,6 @@
   <depend>grid_map_core</depend>
   <depend>grid_map_msgs</depend>
   <depend>grid_map_ros</depend>
+  <depend>grid_map_sdf</depend>
   <exec_depend>tf2_ros</exec_depend>
 </package>

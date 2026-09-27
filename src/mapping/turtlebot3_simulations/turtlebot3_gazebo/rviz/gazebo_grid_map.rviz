@@ -7,7 +7,8 @@ Panels:
       Splitter Ratio: 0.6315789222717285
     Tree Height: 412
   - Class: rviz/Views
-    Expanded: ~
+    Expanded:
+      - /Current View1
     Name: Views
     Splitter Ratio: 0.5
 Preferences:
@@ -35,49 +36,15 @@ Visualization Manager:
       Plane Cell Count: 20
       Reference Frame: <Fixed Frame>
       Value: true
-    - Alpha: 0.800000011920929
-      Class: rviz/Map
-      Color Scheme: map
-      Draw Behind: true
-      Enabled: true
-      Name: Static Map
-      Topic: /map
-      Unreliable: false
-      Use Timestamp: false
-      Value: true
     - Alpha: 0.8999999761581421
       Class: rviz/Map
-      Color Scheme: map
+      Color Scheme: costmap
       Draw Behind: false
       Enabled: true
-      Name: Grid Map Occupancy
-      Topic: /grid_map_visualization/occupancy_grid
+      Name: Cost Map
+      Topic: /costmap
       Unreliable: false
       Use Timestamp: false
-      Value: true
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Class: grid_map_rviz_plugin/GridMap
-      Color: 255; 255; 255
-      Color Layer: occupancy
-      Color Transformer: GridMapLayer
-      ColorMap: gist_rainbow
-      Enabled: true
-      Grid Cell Decimation: 1
-      Grid Line Thickness: 0.10000000149011612
-      Height Layer: flat
-      Height Transformer: GridMapLayer
-      History Length: 1
-      Invert ColorMap: false
-      Max Color: 0; 0; 0
-      Max Intensity: 100
-      Min Color: 255; 255; 255
-      Min Intensity: 0
-      Name: GridMap
-      Show Grid Lines: false
-      Topic: /grid_map
-      Unreliable: false
-      Use ColorMap: false
       Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
@@ -241,7 +208,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 38.99064254760742
+      Scale: 81.33722686767578
       Target Frame: <Fixed Frame>
       X: 0
       Y: 0

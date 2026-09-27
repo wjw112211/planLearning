@@ -11,6 +11,11 @@
   <arg name="run_slam" default="false"/>
   <arg name="run_autonomous_drive" default="false"/>
   <arg name="launch_rviz" default="true"/>
+  <!-- 代价地图参数，透传给 grid_map_gazebo_bridge -->
+  <arg name="lethal_threshold" default="65"/>
+  <arg name="inscribed_radius" default="0.20"/>
+  <arg name="inflation_radius" default="0.50"/>
+  <arg name="cost_scaling_factor" default="10.0"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(arg world_name)"/>
@@ -91,8 +96,12 @@
     <arg name="map_type" value="$(arg static_map_type)"/>
   </include>
 
-  <include file="$(find grid_map_gazebo_bridge)/launch/grid_map_gazebo_bridge.launch"/>
-  <include file="$(find grid_map_gazebo_bridge)/launch/grid_map_visualization.launch"/>
+  <include file="$(find grid_map_gazebo_bridge)/launch/grid_map_gazebo_bridge.launch">
+    <arg name="lethal_threshold" value="$(arg lethal_threshold)"/>
+    <arg name="inscribed_radius" value="$(arg inscribed_radius)"/>
+    <arg name="inflation_radius" value="$(arg inflation_radius)"/>
+    <arg name="cost_scaling_factor" value="$(arg cost_scaling_factor)"/>
+  </include>
 
   <!-- Retain the existing simple autonomous driver, but make it optional. -->
   <include file="$(find turtlebot3_gazebo)/launch/turtlebot3_simulation.launch"

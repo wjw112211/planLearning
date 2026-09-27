@@ -35,4 +35,24 @@ roslaunch turtlebot3_gazebo gazebo_grid_map.launch use_static_map:=false run_sla
 rostopic pub -r 10 /cmd_vel geometry_msgs/Twist "{linear: {x: 0.15, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"
 ```
 
+## 代价地图
+
+`grid_map_gazebo_bridge` 会把占据栅格地图转换成代价地图，代价取值沿用 ROS costmap_2d 的约定：
+0 为自由空间，1~252 为膨胀代价，253 为紧贴障碍的内切膨胀栅格，254 为致命障碍，未知区域为 -1。
+
+* `/map`：输入的占据栅格地图，来自静态地图或 gmapping。
+* `/grid_map`：grid_map 形式的代价地图，包含 `occupancy`（原始占据）和 `cost`（代价）两个图层。
+* `/costmap`：OccupancyGrid 形式的代价地图，`cost` 由 [0, 254] 归一化到 [0, 100]，供 RViz 与规划器使用。
+
+RViz 只显示代价地图本身：白为自由空间，黑为致命障碍，灰色梯度为膨胀代价。
+
+代价地图参数的默认值在 `grid_map_gazebo_bridge/launch/grid_map_gazebo_bridge.launch` 中，也可以在启动时覆盖：
+
+```bash
+# 占据值达到多少算致命障碍
+roslaunch turtlebot3_gazebo gazebo_grid_map.launch lethal_threshold:=65
+# 膨胀半径，超出该距离的栅格代价为 0
+roslaunch turtlebot3_gazebo gazebo_grid_map.launch inflation_radius:=0.8
+```
+
 

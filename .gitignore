@@ -1,5 +1,7 @@
 build
 devel
+log
+log_test
 .codex
 .agent
 .vscode

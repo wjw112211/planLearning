@@ -56,10 +56,46 @@ source /opt/ros/noetic/setup.bash
 catkin_make
 source devel/setup.bash
 ```
+
+> 如果要用 `src/common/logManager`（日志模块），编译前先装 glog：
+> `sudo apt install libgoogle-glog-dev`（会一起装上 libgflags-dev）。
+
 ## 2.2启动
 
 启动gazebo和rviz,打开地图，可以看到机器人仿真环境以及生成的二维栅格地图，以及相应的代价地图。
 ```bash
+roslaunch bringup gazebo_grid_map.launch
+```
+
+# 三、日志模块 logManager
+
+`src/common/logManager` 在 glog 外面包了一层，glog 的原生用法（`LOG(INFO)`、`VLOG()`、`CHECK()` ...）全部保留，
+另外加了三个功能：日志离线保存、定时清理、按时间节流打印。详细说明见
+`src/common/logManager/README.md`。
+
+## 3.1需要的环境
+
+```bash
+sudo apt install libgoogle-glog-dev
+```
+
+## 3.2使用
+
+别的 package 里只要在 CMakeLists.txt 的 `find_package(catkin ... COMPONENTS ...)` 中加上 `logManager`，
+再 `#include "logManager/logManager.h"`，然后：
+
+```cpp
+LOG_INIT();                        // 日志写到 <工程根>/log 下，保留 7 天，定时清理
+
+LOG(INFO) << "原生 glog 用法不变";
+LOG_EVERY_T(INFO, 1.0) << "同一个调用点 1 秒最多打一次（第一次一定打）";
+```
+
+日志文件默认落在工程最外层目录（和 `src`、`build`、`devel` 同级）的 `log/` 里，
+所以请在工程根目录下启动程序，例如：
+
+```bash
+cd /home/wjw/Algorithm
 roslaunch bringup gazebo_grid_map.launch
 ```
 

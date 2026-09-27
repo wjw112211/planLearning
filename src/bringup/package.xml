@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bringup</name>
+  <version>0.0.0</version>
+  <description>Launch and configuration files for the Algorithm grid map demos.</description>
+
+  <maintainer email="wjw@example.com">wjw</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gmapping</exec_depend>
+  <exec_depend>grid_map_gazebo_bridge</exec_depend>
+  <exec_depend>rviz</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>turtlebot3_description</exec_depend>
+  <exec_depend>turtlebot3_gazebo</exec_depend>
+  <exec_depend>xacro</exec_depend>
+</package>

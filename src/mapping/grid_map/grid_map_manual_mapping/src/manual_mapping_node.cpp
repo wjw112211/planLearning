@@ -285,6 +285,8 @@ public:
         mapFrame_("map"),
         odomFrame_("odom"),
         mapsDir_("."),
+        mapFile_(""),
+        fallbackToLatest_(true),
         defaultMode_(kModeLocalization),
         mode_(kModeLocalization),
         resolution_(0.05),
@@ -322,6 +324,12 @@ public:
     privateNodeHandle_.param<std::string>("map_frame", mapFrame_, mapFrame_);
     privateNodeHandle_.param<std::string>("odom_frame", odomFrame_, odomFrame_);
     privateNodeHandle_.param<std::string>("maps_dir", mapsDir_, mapsDir_);
+    // map_file：只加载指定的地图文件（不写 = 加载 maps_dir 里最新的一张）。
+    // 可以写 "latest"、"map_20260927_190513"、"xxx.pgm"、"xxx.yaml"，也可以给绝对路径；
+    // 同名的 .yaml 会自动去找（找不到就用下面的元信息参数）。
+    privateNodeHandle_.param<std::string>("map_file", mapFile_, mapFile_);
+    // 配置的 map_file 找不到时，是否退回"最新的一张"
+    privateNodeHandle_.param("fallback_to_latest", fallbackToLatest_, fallbackToLatest_);
     privateNodeHandle_.param<std::string>("default_mode", defaultMode_, defaultMode_);
     privateNodeHandle_.param("resolution", configResolution_, configResolution_);
     privateNodeHandle_.param("width", configWidth_, configWidth_);
@@ -419,17 +427,73 @@ private:
   {
     std::string pgmPath;
     std::string yamlPath;
-    if (findLatestMap(pgmPath, yamlPath) && loadMap(pgmPath, yamlPath))
+    bool haveMap = false;
+    if (!mapFile_.empty())
+    {
+      haveMap = resolveConfiguredMap(mapFile_, pgmPath, yamlPath);
+      if (!haveMap && fallbackToLatest_)
+      {
+        LOG(WARNING) << "map_file=" << mapFile_ << " 不可用，退回 maps_dir 里最新的一张";
+        haveMap = findLatestMap(pgmPath, yamlPath);
+      }
+    }
+    else
+    {
+      haveMap = findLatestMap(pgmPath, yamlPath);
+    }
+
+    if (haveMap && loadMap(pgmPath, yamlPath))
     {
       return;
     }
-    // 一张地图都没有：发一张全未知的图，别让 RViz 里空着
+
+    // 没有可用地图：发一张全未知的图，别让 RViz 里空着
     resetCanvas(configResolution_, configWidth_, configHeight_, configOriginX_, configOriginY_);
     refreshMapData();
     publishMap();
     lastPublishTime_ = ros::Time::now();
-    publishStatus("定位模式：maps/ 里还没有地图，先按建图模式建一张并保存");
-    LOG(WARNING) << "定位模式：在 " << mapsDir_ << " 里没找到可用的 pgm + yaml";
+    if (mapFile_.empty())
+    {
+      publishStatus("定位模式：maps/ 里还没有地图，先按建图模式建一张并保存");
+    }
+    else
+    {
+      publishStatus("定位模式：配置的地图 " + mapFile_ + " 不可用（看日志）");
+    }
+    LOG(WARNING) << "定位模式：没有可用地图（map_file="
+                 << (mapFile_.empty() ? std::string("<空>") : mapFile_) << ", maps_dir=" << mapsDir_
+                 << "）";
+  }
+
+  // 把配置里的 map_file 解析成真实路径：允许 "latest"、"名字"、"名字.pgm"、"名字.yaml"、绝对路径
+  bool resolveConfiguredMap(const std::string& mapFile, std::string& pgmPath,
+                            std::string& yamlPath) const
+  {
+    std::string path = mapFile;
+    if (path.empty() || path[0] != '/')
+    {
+      path = mapsDir_ + "/" + path;
+    }
+    // 去掉 .pgm / .yaml 后缀，得到公共的 stem
+    const std::string lowerSuffix = path.size() > 4 ? path.substr(path.size() - 4) : std::string();
+    std::string stem = path;
+    if (lowerSuffix == ".pgm" || lowerSuffix == ".yaml" || lowerSuffix == ".yml" ||
+        lowerSuffix == ".PGM" || lowerSuffix == ".YAML")
+    {
+      stem = path.substr(0, path.size() - 5);
+    }
+    pgmPath = stem + ".pgm";
+    yamlPath = stem + ".yaml";
+    if (!fileExists(pgmPath))
+    {
+      LOG(WARNING) << "地图图片不存在：" << pgmPath;
+      return false;
+    }
+    if (!fileExists(yamlPath))
+    {
+      LOG(WARNING) << "地图元信息不存在（将用配置里的 resolution/origin）：" << yamlPath;
+    }
+    return true;
   }
 
   // -------------------------------------------------------------------------
@@ -765,39 +829,45 @@ private:
     double occupiedThresh = occupiedThresh_;
     double freeThresh = freeThresh_;
     std::string imageName = baseName(pgmPath);
-    try
+    if (fileExists(yamlPath))
     {
-      const YAML::Node root = YAML::LoadFile(yamlPath);
-      if (root["resolution"])
+      try
       {
-        resolution = root["resolution"].as<double>();
+        const YAML::Node root = YAML::LoadFile(yamlPath);
+        if (root["resolution"])
+        {
+          resolution = root["resolution"].as<double>();
+        }
+        if (root["negate"])
+        {
+          negate = root["negate"].as<double>();
+        }
+        if (root["occupied_thresh"])
+        {
+          occupiedThresh = root["occupied_thresh"].as<double>();
+        }
+        if (root["free_thresh"])
+        {
+          freeThresh = root["free_thresh"].as<double>();
+        }
+        if (root["origin"] && root["origin"].IsSequence() && root["origin"].size() >= 2)
+        {
+          originX = root["origin"][0].as<double>();
+          originY = root["origin"][1].as<double>();
+        }
+        if (root["image"])
+        {
+          imageName = root["image"].as<std::string>();
+        }
       }
-      if (root["negate"])
+      catch (const YAML::Exception& exception)
       {
-        negate = root["negate"].as<double>();
-      }
-      if (root["occupied_thresh"])
-      {
-        occupiedThresh = root["occupied_thresh"].as<double>();
-      }
-      if (root["free_thresh"])
-      {
-        freeThresh = root["free_thresh"].as<double>();
-      }
-      if (root["origin"] && root["origin"].IsSequence() && root["origin"].size() >= 2)
-      {
-        originX = root["origin"][0].as<double>();
-        originY = root["origin"][1].as<double>();
-      }
-      if (root["image"])
-      {
-        imageName = root["image"].as<std::string>();
+        LOG(ERROR) << "读 " << yamlPath << " 失败（改用配置里的元信息）: " << exception.what();
       }
     }
-    catch (const YAML::Exception& exception)
+    else
     {
-      LOG(ERROR) << "读 " << yamlPath << " 失败: " << exception.what();
-      return false;
+      LOG(WARNING) << "没有元信息 yaml（" << yamlPath << "），用配置里的 resolution/origin/thresh";
     }
 
     std::string imagePath = pgmPath;
@@ -884,6 +954,8 @@ private:
   std::string mapFrame_;
   std::string odomFrame_;
   std::string mapsDir_;
+  std::string mapFile_;
+  bool fallbackToLatest_;
   std::string defaultMode_;
   std::string mode_;
   std::string lastStatus_;

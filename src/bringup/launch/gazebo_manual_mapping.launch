@@ -15,7 +15,7 @@
     键盘：w 前进 / s 后退 / a 左转 / d 右转 / 空格 停（在跑 roslaunch 的那个终端里按）。
     地图存到 grid_map_manual_mapping/maps/ 下面（pgm + 同名 yaml）。
   -->
-  <arg name="config_file" default="$(find bringup)/config/gazebo_manual_mapping.yaml"/>
+  <arg name="config_file" default="$(find bringup)/config/manual_mapping.yaml"/>
   <arg name="model" default="burger" doc="TurtleBot3 model: burger, waffle, waffle_pi"/>
   <arg name="world_name" default="$(find turtlebot3_gazebo)/worlds/turtlebot3_maze.world"/>
   <arg name="x_pos" default="-1.5"/>

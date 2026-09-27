@@ -55,4 +55,20 @@ roslaunch turtlebot3_gazebo gazebo_grid_map.launch lethal_threshold:=65
 roslaunch turtlebot3_gazebo gazebo_grid_map.launch inflation_radius:=0.8
 ```
 
+## 速度指令与自动停车
+
+Gazebo 的差速驱动插件（libgazebo_ros_diff_drive.so）没有指令超时机制：只要收到过一次 `/cmd_vel`，
+就会一直按这个速度驱动轮子，直到收到新的指令。所以 `rostopic pub` 结束之后机器人不会自己停下。
+
+`cmd_vel_watchdog` 节点订阅 `/cmd_vel`，超过 `cmd_vel_timeout` 秒没有收到新指令，就发布全 0 的
+Twist 让机器人停下。
+
+```bash
+# 停止发指令 1 秒后自动停车
+roslaunch turtlebot3_gazebo gazebo_grid_map.launch cmd_vel_timeout:=1.0
+
+# 关掉看门狗（机器人会保持最后一次速度指令）
+roslaunch turtlebot3_gazebo gazebo_grid_map.launch launch_cmd_vel_watchdog:=false
+```
+
 

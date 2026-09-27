@@ -11,6 +11,9 @@
   <arg name="run_slam" default="false"/>
   <arg name="run_autonomous_drive" default="false"/>
   <arg name="launch_rviz" default="true"/>
+  <!-- 速度指令看门狗：超时没有新指令就停车 -->
+  <arg name="launch_cmd_vel_watchdog" default="true"/>
+  <arg name="cmd_vel_timeout" default="0.5"/>
   <!-- 代价地图参数，透传给 grid_map_gazebo_bridge -->
   <arg name="lethal_threshold" default="65"/>
   <arg name="inscribed_radius" default="0.20"/>
@@ -67,6 +70,17 @@
         args="-urdf -model $(arg robot_name)
               -x $(arg x_pos) -y $(arg y_pos) -z $(arg z_pos)
               -param robot_description"/>
+
+  <!-- Gazebo 差速驱动插件没有指令超时，停止发送 /cmd_vel 后需要用看门狗把机器人停下。 -->
+  <node pkg="turtlebot3_gazebo"
+        type="cmd_vel_watchdog"
+        name="cmd_vel_watchdog"
+        output="screen"
+        if="$(arg launch_cmd_vel_watchdog)">
+    <param name="cmd_vel_topic" value="/cmd_vel"/>
+    <param name="timeout" value="$(arg cmd_vel_timeout)"/>
+    <param name="publish_rate" value="20.0"/>
+  </node>
 
   <!-- Build a 2D map from Gazebo's simulated laser and odometry. -->
   <node pkg="gmapping"

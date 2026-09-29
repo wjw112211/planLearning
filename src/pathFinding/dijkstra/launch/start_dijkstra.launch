@@ -1,0 +1,22 @@
+<launch>
+  <arg name="node_name" default="dijkstra_node" />
+  <arg name="output" default="screen" />
+  <arg name="costmap_topic" default="/costmap" />
+  <arg name="goal_topic" default="/goal" />
+  <arg name="rviz_goal_topic" default="/move_base_simple/goal" />
+  <arg name="path_topic" default="/global_path" />
+  <arg name="path_polygon_topic" default="/global_path_polygon" />
+  <arg name="map_frame" default="map" />
+  <arg name="base_frame" default="base_link" />
+
+  <node pkg="dijkstra" type="dijkstra_node" name="$(arg node_name)" output="$(arg output)">
+    <rosparam command="load" file="$(find dijkstra)/config/dijkstra.yaml" />
+    <param name="costmap_topic" value="$(arg costmap_topic)" />
+    <param name="goal_topic" value="$(arg goal_topic)" />
+    <param name="rviz_goal_topic" value="$(arg rviz_goal_topic)" />
+    <param name="path_topic" value="$(arg path_topic)" />
+    <param name="path_polygon_topic" value="$(arg path_polygon_topic)" />
+    <param name="map_frame" value="$(arg map_frame)" />
+    <param name="base_frame" value="$(arg base_frame)" />
+  </node>
+</launch>

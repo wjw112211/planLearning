@@ -1,0 +1,7 @@
+costmap_topic: /costmap
+goal_topic: /goal
+rviz_goal_topic: /move_base_simple/goal
+path_topic: /global_path
+path_polygon_topic: /global_path_polygon
+map_frame: map
+base_frame: base_link

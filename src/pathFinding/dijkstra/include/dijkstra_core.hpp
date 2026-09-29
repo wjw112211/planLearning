@@ -35,12 +35,6 @@ public:
         double g; // 从起点到该节点的累计代价
     };
 
-    
-    // map系坐标下的路径，从起点到终点
-    // 图搜索路径的最终结果，存储在path_map_中
-    geometry_msgs::Polygon path_map_;
-
-
     // 设置代价地图，一维存储
     void setCostMap(const std::vector<int8_t>& cost_map, 
         int width, 
@@ -51,6 +45,12 @@ public:
 
     // 设置起点和终点的索引坐标
     void setStartAndGoal(const Point start, const Point goal);
+
+    // 执行Dijkstra规划
+    bool makePlan();
+
+    // 获取map系坐标下的路径
+    const geometry_msgs::Polygon& getPathMap() const;
 
 
 private:
@@ -77,6 +77,9 @@ private:
 
     // 索引坐标的路径，从起点到终点
     std::vector<Point> path_index_;
+
+    // map系坐标下的路径，从起点到终点
+    geometry_msgs::Polygon path_map_;
 
     //索引方式为 index = y * width + x
     // 二维索引转换为一维索引
@@ -122,6 +125,9 @@ private:
 
     // 回溯
     void retracePath(int goal_index);
+
+    // 将索引路径转换到map坐标系
+    void convertPathToMap();
 
 
 };

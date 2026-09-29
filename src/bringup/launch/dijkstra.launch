@@ -1,0 +1,23 @@
+<launch>
+  <arg name="node_name" default="dijkstra_node" />
+  <arg name="output" default="screen" />
+  <arg name="costmap_topic" default="/costmap" />
+  <arg name="goal_topic" default="/goal" />
+  <arg name="rviz_goal_topic" default="/move_base_simple/goal" />
+  <arg name="path_topic" default="/global_path" />
+  <arg name="path_polygon_topic" default="/global_path_polygon" />
+  <arg name="map_frame" default="map" />
+  <arg name="base_frame" default="base_link" />
+
+  <include file="$(find dijkstra)/launch/start_dijkstra.launch">
+    <arg name="node_name" value="$(arg node_name)" />
+    <arg name="output" value="$(arg output)" />
+    <arg name="costmap_topic" value="$(arg costmap_topic)" />
+    <arg name="goal_topic" value="$(arg goal_topic)" />
+    <arg name="rviz_goal_topic" value="$(arg rviz_goal_topic)" />
+    <arg name="path_topic" value="$(arg path_topic)" />
+    <arg name="path_polygon_topic" value="$(arg path_polygon_topic)" />
+    <arg name="map_frame" value="$(arg map_frame)" />
+    <arg name="base_frame" value="$(arg base_frame)" />
+  </include>
+</launch>

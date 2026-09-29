@@ -69,6 +69,9 @@ roslaunch bringup manual_mapping.launch
 
 # 定位，默认使用最新的地图
 roslaunch bringup grid_map.launch
+
+#全局规划
+roslaunch bringup dijkstra.launch
 ```
 
 # 三、日志模块 logManager

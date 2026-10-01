@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>pursuit</name>
+  <version>0.1.0</version>
+  <description>Pure pursuit path following node for global paths.</description>
+
+  <maintainer email="wjw@todo.todo">wjw</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>logManager</depend>
+  <depend>nav_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+</package>

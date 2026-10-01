@@ -1,0 +1,18 @@
+<launch>
+  <arg name="node_name" default="pursuit_node" />
+  <arg name="output" default="screen" />
+  <arg name="path_topic" default="/global_path_smooth" />
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
+  <arg name="lookahead_point_topic" default="/pursuit/lookahead_point" />
+  <arg name="map_frame" default="map" />
+  <arg name="base_frame" default="base_link" />
+
+  <node pkg="pursuit" type="pursuit_node" name="$(arg node_name)" output="$(arg output)">
+    <rosparam command="load" file="$(find pursuit)/config/pursuit.yaml" />
+    <param name="path_topic" value="$(arg path_topic)" />
+    <param name="cmd_vel_topic" value="$(arg cmd_vel_topic)" />
+    <param name="lookahead_point_topic" value="$(arg lookahead_point_topic)" />
+    <param name="map_frame" value="$(arg map_frame)" />
+    <param name="base_frame" value="$(arg base_frame)" />
+  </node>
+</launch>

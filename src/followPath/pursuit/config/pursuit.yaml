@@ -1,0 +1,68 @@
+# 纯追踪（Pure Pursuit）跟踪参数，由 src/followPath/pursuit/launch/pursuit_follower.launch 加载。
+# 改完重新 roslaunch 即可生效，不需要重新编译。
+
+# ---------------- 话题和坐标系 ----------------
+# 待跟踪的路径：默认用 minijerk 平滑后的 /global_path_smooth（平滑后的路径跟踪更稳），
+# 想直接跟 dijkstra 的粗糙路径就改成 /global_path
+path_topic: /global_path_smooth
+
+# 速度指令话题，Gazebo 差速底盘和真机都听这个
+cmd_vel_topic: /cmd_vel
+
+# 前视点话题（geometry_msgs/PointStamped），在 RViz 里加 PointStamped 能看到算法当前盯的点
+lookahead_point_topic: /pursuit/lookahead_point
+
+# 世界坐标系和车体坐标系：机器人位姿由 TF 的 map -> base_link 给出，
+# 用 base_footprint 就改成 base_footprint（dijkstra 用的是 base_link）
+map_frame: map
+base_frame: base_link
+
+# ---------------- 控制周期 ----------------
+# 控制频率，单位 Hz：跟踪指令的下发频率，太低机器人会一顿一顿，太高没有意义
+control_frequency: 20.0
+
+# ---------------- 前视距离 ----------------
+# 基准前视距离，单位 m：机器人速度接近 0 时盯多远的点。
+# 太小容易在直道上左右画龙（尤其定位有噪声时），太大过弯会切内弯甚至撞内角。
+# 仿真数据（0.5 m 半径弯道）：0.4 -> 横向偏差 0.05 m，0.5 -> 0.08 m
+lookahead_distance: 0.4
+
+# 前视距离随速度的增益，单位 s：ld = lookahead_distance + 增益 * 上一次线速度，
+# 速度越快看得越远，这是纯追踪最常用的自适应做法，设 0 就是固定前视距离
+lookahead_gain: 0.6
+
+# 前视距离下限、上限，单位 m：算出来的 ld 会夹在这个区间里。
+# 速度 0.22 m/s 时 ld 实际落在 [0.4, 0.53]，这两个值平时不生效，只在改速度时才起作用
+min_lookahead: 0.2
+max_lookahead: 1.2
+
+# ---------------- 速度 ----------------
+# 跟踪时的最高线速度，单位 m/s（TurtleBot3 burger 约 0.22）
+linear_speed: 0.22
+
+# 最低线速度，单位 m/s：转弯减速、快到终点时都不会低于这个值。
+# 太小会被电机死区吃掉（指令在发但轮子不转），设 0 表示允许完全停下
+min_linear_speed: 0.05
+
+# 最大角速度，单位 rad/s：纯追踪算出来的角速度超过它就按它截断，
+# 相当于给最小转弯半径兜底，防止高速过急弯冲出路径；原地掉头时也用它限幅
+max_angular_speed: 1.5
+
+# 最大角加速度，单位 rad/s²：指令角速度每拍最多变化这么多，用来滤掉位姿噪声、
+# 路径点抖动带来的"左右画龙"，代价是转向响应变慢一点；0 表示不做变化率限幅
+max_angular_acceleration: 4.0
+
+# 终点减速距离，单位 m：离路径终点小于这个距离就按剩余距离比例减速。
+# 太小会以满速冲过终点，太大最后一段会爬得很慢
+deceleration_distance: 0.6
+
+# 到点判据，单位 m：机器人离路径最后一个点小于这个距离就算到达，发零速度停车。
+# 这个值直接决定"停得准不准"，就是最终到点误差的上限，0.15 意味着最远差 15 cm 才停；
+# 判停有迟滞，偏出 3 倍这个距离才会重新起步
+goal_tolerance: 0.05
+
+# ---------------- 停车行为 ----------------
+# true：空闲（没有路径 / 已到终点）时也一直发零速度指令，Gazebo 仿真里最省心；
+# false：只在从"跟踪中"切到"停车"的那一拍发一次零速度，之后保持安静，
+#        方便手动遥控接管（一直发零速度会和键盘遥控抢 /cmd_vel）
+publish_zero_when_idle: true

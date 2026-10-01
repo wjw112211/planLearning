@@ -1,0 +1,36 @@
+<launch>
+  <!--
+    轨迹平滑（mini-jerk + OSQP，实现见 src/trajgenerate/minijerk）：
+    订阅 dijkstra 发的粗糙全局路径 /global_path，平滑后发布 /global_path_smooth。
+
+    用法：
+      roslaunch bringup dijkstra.launch            # 先出 /global_path
+      roslaunch bringup minijerk.launch            # 参数用 minijerk/config/minijerk.yaml
+
+    不想改 yaml 就临时调算法参数（不传则和 yaml 一致）：
+      roslaunch bringup minijerk.launch fidelity_weight:=0.1 sample_interval:=0.05
+  -->
+  <arg name="node_name" default="minijerk_node" />
+  <arg name="output" default="screen" />
+  <arg name="rough_path_topic" default="/global_path" />
+  <arg name="smooth_path_topic" default="/global_path_smooth" />
+  <arg name="map_frame" default="map" />
+
+  <!-- 算法参数：默认值跟 minijerk/config/minijerk.yaml 保持一致 -->
+  <arg name="sample_interval" default="0.1" />
+  <arg name="feature_epsilon" default="0.05" />
+  <arg name="fidelity_weight" default="1.0" />
+
+  <include file="$(find minijerk)/launch/minijerk_smoother.launch">
+    <arg name="node_name" value="$(arg node_name)" />
+    <arg name="output" value="$(arg output)" />
+    <arg name="rough_path_topic" value="$(arg rough_path_topic)" />
+    <arg name="smooth_path_topic" value="$(arg smooth_path_topic)" />
+    <arg name="map_frame" value="$(arg map_frame)" />
+  </include>
+
+  <!-- 命令行给的算法参数覆盖 yaml（放在 include 之后，保证最后生效） -->
+  <param name="$(arg node_name)/sample_interval" value="$(arg sample_interval)" />
+  <param name="$(arg node_name)/feature_epsilon" value="$(arg feature_epsilon)" />
+  <param name="$(arg node_name)/fidelity_weight" value="$(arg fidelity_weight)" />
+</launch>

@@ -72,6 +72,9 @@ roslaunch bringup grid_map.launch
 
 #全局规划
 roslaunch bringup dijkstra.launch
+
+#轨迹平滑（订阅 /global_path，发布 /global_path_smooth）
+roslaunch bringup minijerk.launch
 ```
 
 # 三、日志模块 logManager

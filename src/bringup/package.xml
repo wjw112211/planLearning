@@ -12,6 +12,7 @@
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>gmapping</exec_depend>
   <exec_depend>grid_map_gazebo_bridge</exec_depend>
+  <exec_depend>minijerk</exec_depend>
   <exec_depend>rviz</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>turtlebot3_description</exec_depend>

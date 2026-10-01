@@ -1,0 +1,16 @@
+rough_path_topic: /global_path
+smooth_path_topic: /global_path_smooth
+map_frame: map
+
+# 采样间隔，单位m：粗糙轨迹按弧长等间隔重采样，间隔越小平滑后的轨迹越密
+sample_interval: 0.1
+
+# 特征点阈值，单位m：Douglas-Peucker容许的最大横向偏差，
+# 阈值越大特征点越少、平滑后的轨迹越偏离粗糙轨迹
+feature_epsilon: 0.05
+
+# 保真项权重：目标函数为 min( Σjerk² + fidelity_weight * Σ(x - 粗糙轨迹)² )
+# 越大越贴近粗糙轨迹（平滑越弱），越小越平滑；必须大于0，
+# 它同时保证QP严格凸（只有两个特征点时纯最小jerk的解不唯一，会解出乱漂的曲线）
+# 注意：这一项和三阶差分是同一个量纲下的比较，改sample_interval后需要重新微调
+fidelity_weight: 1.0

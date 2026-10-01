@@ -1,0 +1,14 @@
+<launch>
+  <arg name="node_name" default="minijerk_node" />
+  <arg name="output" default="screen" />
+  <arg name="rough_path_topic" default="/global_path" />
+  <arg name="smooth_path_topic" default="/global_path_smooth" />
+  <arg name="map_frame" default="map" />
+
+  <node pkg="minijerk" type="minijerk_node" name="$(arg node_name)" output="$(arg output)">
+    <rosparam command="load" file="$(find minijerk)/config/minijerk.yaml" />
+    <param name="rough_path_topic" value="$(arg rough_path_topic)" />
+    <param name="smooth_path_topic" value="$(arg smooth_path_topic)" />
+    <param name="map_frame" value="$(arg map_frame)" />
+  </node>
+</launch>

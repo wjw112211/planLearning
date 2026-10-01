@@ -1,0 +1,62 @@
+<launch>
+  <!--
+    路径跟踪（纯追踪 pure pursuit，实现见 src/followPath/pursuit）：
+    订阅 minijerk 平滑后的全局路径 /global_path_smooth，跟踪并发布 /cmd_vel 给底盘。
+
+    用法：
+      roslaunch bringup grid_map.launch            # 定位 + 代价地图
+      roslaunch bringup dijkstra.launch            # RViz 里点 2D Nav Goal，出 /global_path
+      roslaunch bringup minijerk.launch            # 平滑成 /global_path_smooth
+      roslaunch bringup pursuit.launch             # 跟 /global_path_smooth 走
+
+    跟踪参数都在 pursuit/config/pursuit.yaml 里（前视距离、跟踪速度、角速度限幅等）。
+    不想改 yaml 就临时调参数（不传则和 yaml 一致）：
+      roslaunch bringup pursuit.launch linear_speed:=0.15 lookahead_distance:=0.5
+  -->
+  <arg name="node_name" default="pursuit_node" />
+  <arg name="output" default="screen" />
+  <arg name="path_topic" default="/global_path_smooth" />
+  <arg name="cmd_vel_topic" default="/cmd_vel" />
+  <arg name="lookahead_point_topic" default="/pursuit/lookahead_point" />
+  <arg name="map_frame" default="map" />
+  <arg name="base_frame" default="base_link" />
+
+  <!-- 跟踪参数：默认值跟 pursuit/config/pursuit.yaml 保持一致 -->
+  <arg name="control_frequency" default="20.0" />
+  <arg name="lookahead_distance" default="0.4" />
+  <arg name="lookahead_gain" default="0.6" />
+  <arg name="min_lookahead" default="0.2" />
+  <arg name="max_lookahead" default="1.2" />
+  <arg name="linear_speed" default="0.22" />
+  <arg name="min_linear_speed" default="0.05" />
+  <arg name="max_angular_speed" default="1.5" />
+  <arg name="max_angular_acceleration" default="4.0" />
+  <arg name="deceleration_distance" default="0.6" />
+  <arg name="goal_tolerance" default="0.05" />
+  <arg name="publish_zero_when_idle" default="true" />
+
+  <include file="$(find pursuit)/launch/pursuit_follower.launch">
+    <arg name="node_name" value="$(arg node_name)" />
+    <arg name="output" value="$(arg output)" />
+    <arg name="path_topic" value="$(arg path_topic)" />
+    <arg name="cmd_vel_topic" value="$(arg cmd_vel_topic)" />
+    <arg name="lookahead_point_topic" value="$(arg lookahead_point_topic)" />
+    <arg name="map_frame" value="$(arg map_frame)" />
+    <arg name="base_frame" value="$(arg base_frame)" />
+  </include>
+
+  <!-- 命令行给的算法参数覆盖 yaml（放在 include 之后，保证最后生效） -->
+  <param name="$(arg node_name)/control_frequency" value="$(arg control_frequency)" />
+  <param name="$(arg node_name)/lookahead_distance" value="$(arg lookahead_distance)" />
+  <param name="$(arg node_name)/lookahead_gain" value="$(arg lookahead_gain)" />
+  <param name="$(arg node_name)/min_lookahead" value="$(arg min_lookahead)" />
+  <param name="$(arg node_name)/max_lookahead" value="$(arg max_lookahead)" />
+  <param name="$(arg node_name)/linear_speed" value="$(arg linear_speed)" />
+  <param name="$(arg node_name)/min_linear_speed" value="$(arg min_linear_speed)" />
+  <param name="$(arg node_name)/max_angular_speed" value="$(arg max_angular_speed)" />
+  <param name="$(arg node_name)/max_angular_acceleration" value="$(arg max_angular_acceleration)" />
+
+  <param name="$(arg node_name)/deceleration_distance" value="$(arg deceleration_distance)" />
+  <param name="$(arg node_name)/goal_tolerance" value="$(arg goal_tolerance)" />
+  <param name="$(arg node_name)/publish_zero_when_idle" value="$(arg publish_zero_when_idle)" />
+</launch>

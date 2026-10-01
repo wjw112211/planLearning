@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>minijerk</name>
+  <version>0.1.0</version>
+  <description>Minimum jerk trajectory smoothing node for global paths.</description>
+
+  <maintainer email="wjw@todo.todo">wjw</maintainer>
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>logManager</depend>
+  <depend>nav_msgs</depend>
+  <depend>roscpp</depend>
+
+  <!-- QP求解器OSQP，CMake侧走的是 osqp 的CMake包（find_package(osqp)），
+       系统包装成 ros-noetic-osqp-vendor 发布 -->
+  <depend>osqp_vendor</depend>
+</package>
